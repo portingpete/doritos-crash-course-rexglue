@@ -45,3 +45,21 @@
   calls `tools/launch.ps1`. It verifies `assets/game/`, builds Debug when
   needed, then runs the port visibly with D3D12, NOP audio, disabled
   networking, MnK enabled, and a 1280x720 window.
+- 2026-06-01: Xbox Live profile requirement removed with project-local XAM
+  profile shims. Generated gate research found `sub_823E0E28` in
+  `port/generated/doritos_port_recomp.19.cpp` treats sign-in state `1` as
+  local-only/error and checks privileges; `sub_828891F0` in
+  `port/generated/doritos_port_recomp.61.cpp` reads profile settings and checks
+  privileges. Added forced generated-source include
+  `src/runtime/xam_profile_import_redirect.h` and runtime implementation
+  `src/runtime/xam_profile_overrides.cpp`; user 0 now reports Live sign-in
+  state `2`, a synthetic `User` sign-in record, allowed privileges, and no
+  sign-in modal.
+- 2026-06-01: Profile override verification passed:
+  `tools/verify_profile_override.ps1`, Debug build, and runtime smoke log
+  `logs/runtime/runtime-profile-override-20260601-095743.log`. Smoke confirmed
+  the override installed, `XamUserGetSigninState` and `XamUserCheckPrivilege`
+  were used, the process stayed alive, and the checked log scan had no
+  fatal/assert/import/draw diagnostics. Computer Use window capture was blocked
+  by Windows with `0x80070005`, so this profile smoke is log/process confirmed
+  rather than screenshot confirmed.

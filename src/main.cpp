@@ -14,6 +14,7 @@
 #include "net/network_mode.h"
 #include "platform/windows_platform.h"
 #include "runtime/runtime_plan.h"
+#include "runtime/xam_profile_overrides.h"
 #include "vfs/mount_table.h"
 
 #if DORITOS_HAS_REXGLUE_GENERATED
@@ -86,6 +87,7 @@ class DORITOSPortApp final : public rex::ReXApp {
     InitializeScaffoldLogging(config_);
     doritos::diagnostics::InstallCrashDumpHandler("logs/runtime/dumps");
     LogScaffoldState(config_);
+    doritos::runtime::InstallXamProfileOverrides();
   }
 
   void OnLoadXexImage(std::string& xex_image) override {

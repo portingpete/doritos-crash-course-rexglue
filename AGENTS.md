@@ -45,6 +45,18 @@
 - Confirmed: in the stable selection run the process remained alive through
   capture and an extra 10 seconds. Checked diagnostics showed no fatal,
   exception, crash, unimplemented, assert, or failed draw entries.
+- Confirmed: the Xbox Live profile gate is driven by XAM profile imports rather
+  than clean binary patching. Generated call sites include
+  `sub_823E0E28` in `port/generated/doritos_port_recomp.19.cpp`, which treats
+  local-only sign-in state `1` as an error and checks privileges, and
+  `sub_828891F0` in `port/generated/doritos_port_recomp.61.cpp`, which reads
+  profile settings and checks privileges.
+- Confirmed: the project-local profile override redirects generated calls for
+  `XamUserGetSigninState`, `XamUserGetSigninInfo`, `XamUserCheckPrivilege`, and
+  `XamShowSigninUI` to Doritos shims that report user 0 as Live signed in
+  (`2`), fill a synthetic `User` sign-in record, allow privilege checks, and
+  suppress the sign-in modal. Verification log:
+  `logs/runtime/runtime-profile-override-20260601-095743.log`.
 
 ## Repo-Specific Do/Do-Not
 
@@ -61,3 +73,7 @@
 - Do not claim a fully playable course yet. Confirmed stable state is title and
   country/level selection, not a loaded obstacle course run.
 - Do not edit the clean `game/` files in place.
+- Do keep the Xbox profile bypass project-local: use
+  `src/runtime/xam_profile_import_redirect.h` and
+  `src/runtime/xam_profile_overrides.cpp`; do not patch `port/generated/`, the
+  external ReXGlue SDK, or clean game assets for this requirement.

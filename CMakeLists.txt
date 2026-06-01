@@ -50,9 +50,10 @@ target_include_directories(DORITOS_platform PUBLIC src)
 add_library(DORITOS_runtime STATIC
     src/runtime/import_trap.cpp
     src/runtime/runtime_plan.cpp
+    src/runtime/xam_profile_overrides.cpp
 )
 target_include_directories(DORITOS_runtime PUBLIC src)
-target_link_libraries(DORITOS_runtime PUBLIC DORITOS_logging)
+target_link_libraries(DORITOS_runtime PUBLIC DORITOS_logging rex::system)
 
 add_library(DORITOS_graphics STATIC
     src/graphics/backend.cpp
@@ -129,12 +130,23 @@ if(EXISTS "${DORITOS_GENERATED_SOURCES_CMAKE}")
     include("${DORITOS_GENERATED_SOURCES_CMAKE}")
     target_sources(doritos_port PRIVATE ${GENERATED_SOURCES})
     target_compile_definitions(doritos_port PRIVATE DORITOS_HAS_REXGLUE_GENERATED=1)
+    set(DORITOS_GENERATED_COMPILE_OPTIONS)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set_source_files_properties(${GENERATED_SOURCES}
-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-label")
+        list(APPEND DORITOS_GENERATED_COMPILE_OPTIONS "-Wno-unused-label")
     elseif(MSVC)
+        list(APPEND DORITOS_GENERATED_COMPILE_OPTIONS "/wd4102")
+    endif()
+    set(DORITOS_XAM_PROFILE_REDIRECT
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/xam_profile_import_redirect.h")
+    if(MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+                CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"))
+        list(APPEND DORITOS_GENERATED_COMPILE_OPTIONS "/FI${DORITOS_XAM_PROFILE_REDIRECT}")
+    else()
+        list(APPEND DORITOS_GENERATED_COMPILE_OPTIONS "-include" "${DORITOS_XAM_PROFILE_REDIRECT}")
+    endif()
+    if(DORITOS_GENERATED_COMPILE_OPTIONS)
         set_source_files_properties(${GENERATED_SOURCES}
-            PROPERTIES COMPILE_OPTIONS "/wd4102")
+            PROPERTIES COMPILE_OPTIONS "${DORITOS_GENERATED_COMPILE_OPTIONS}")
     endif()
     if(DEFINED GENERATED_USES_SEH AND GENERATED_USES_SEH)
         if(MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND

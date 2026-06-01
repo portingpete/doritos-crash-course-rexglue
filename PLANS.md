@@ -44,6 +44,12 @@ Windows-runnable Doritos Crash Course build and reach a stable in-game state.
 - Build succeeded for `build/bin/Debug/doritos_port.exe` with generated sources.
 - Stable runtime verification reached title, then country/level selection using
   `--mnk_mode=true` and a held Space key for Xbox A.
+- Xbox Live profile requirement patch verified by static check, Debug build,
+  and focused runtime smoke. Log:
+  `logs/runtime/runtime-profile-override-20260601-095743.log`; process stayed
+  alive, installed the Doritos profile override, reported user 0 as Live
+  signed in, and allowed the privilege check with no fatal/assert/import/draw
+  diagnostics in the checked scan.
 - Verification screenshots:
   `logs/screenshots/doritos-input-20260531-223134.png`,
   `logs/screenshots/doritos-heldinput-20260531-223653.png`.
@@ -84,3 +90,17 @@ Windows-runnable Doritos Crash Course build and reach a stable in-game state.
 - [x] Runtime gate: launch the Windows target long enough to reach stable in-game
   state without fatal exception, access violation, assertion, or missing
   critical symbol diagnostics.
+
+## Xbox Live Profile Requirement Patch
+
+Goal: remove the title's Xbox Live profile gate without editing `game/`,
+`assets/game/`, `port/generated/`, or the external ReXGlue SDK in place.
+
+- [x] Confirm the gate by tracing local XAM profile imports and generated call
+  sites.
+- [x] Add a Doritos-local import redirect for generated code so selected XAM
+  calls see a synthetic signed-in Live-capable user.
+- [x] Verify the override statically, rebuild, and run a focused runtime smoke
+  test to confirm the title uses the synthetic Live profile path without a
+  sign-in block.
+- [x] Record durable findings in `AGENTS.md` and `MEMORY.md`.

@@ -1,0 +1,6 @@
+#pragma once
+
+#define __imp__XamUserGetSigninState doritos_XamUserGetSigninState
+#define __imp__XamUserGetSigninInfo doritos_XamUserGetSigninInfo
+#define __imp__XamUserCheckPrivilege doritos_XamUserCheckPrivilege
+#define __imp__XamShowSigninUI doritos_XamShowSigninUI
