@@ -65,10 +65,31 @@
   `XamShowSigninUI` before the crash.
 - Confirmed: generated start-game profile call sites load
   `XamUserGetSigninInfo` output offset `+8` and test bit `0x2` before taking
-  the Live-capable path. The Doritos shim now writes
-  `kSyntheticSigninInfoFlags = 0x00000002u` at offset `+8` in
-  `src/runtime/xam_profile_overrides.cpp`; `tools/verify_profile_override.ps1`
+  the guest-profile rejection path. A user screenshot confirmed that setting
+  bit `0x2` produces the "Guest gamer profiles are not supported" modal. The
+  Doritos shim now writes `kSyntheticSigninInfoFlags = 0x00000001u` at offset
+  `+8`, keeping the guest bit clear; `tools/verify_profile_override.ps1`
   checks this regression case.
+- Confirmed: with synthetic sign-in flags `0x1`, scripted start reaches the
+  game-only "Saving..." overlay and then crashes with a PPC access violation
+  rethrown through `sub_823E8448`. The Xbox Live guest-profile dialog is no
+  longer the active blocker.
+- Confirmed: the start-course crash was stale async work on a stack-temporary
+  course-load object, not an active Xbox profile gate. LLDB showed
+  `sub_824E14C0` clearing the object's service at `this+4` from the
+  `sub_824D5258 -> sub_824D2888` destructor path after `sub_8233F360` finished
+  with its stack object. Later worker callbacks entered `sub_824E9940` and
+  `sub_824EA8F8` with the same `this+4` already null.
+- Confirmed: `sub_824E9940` can natively return `0`, `3`, or `4`; it reaches
+  the `4` finish-callback path only after using `this+4`. For the stale/null
+  service case, the project-local guard now logs once and returns `0` without
+  calling the finish callback.
+- Confirmed: after the stale-worker guard change, scripted course start reached
+  live obstacle-course gameplay and remained alive through the 100 second
+  verification timeout. Game-only capture:
+  `logs/screenshots/doritos-start-course-pendingguard-20260601-130158.bmp`;
+  public PNG: `docs/screenshots/04-obstacle-course-gameplay.png`; runtime log:
+  `logs/runtime/runtime-start-course-pendingguard-20260601-130158.log`.
 
 ## Repo-Specific Do/Do-Not
 
@@ -82,13 +103,14 @@
   delegates to `tools/launch.ps1`, validates `assets/game/`, builds Debug if
   needed, and launches with D3D12, NOP audio, disabled networking, MnK, and a
   1280x720 window.
-- Do not claim a fully playable course yet. Confirmed stable state is title and
-  country/level selection, not a loaded obstacle course run.
+- Do not claim full game completion yet. Confirmed stable state now includes a
+  loaded obstacle course run, but audio, extended play, and all level flows have
+  not been signed off.
 - Do not edit the clean `game/` files in place.
 - Do keep the Xbox profile bypass project-local: use
   `src/runtime/xam_profile_import_redirect.h` and
   `src/runtime/xam_profile_overrides.cpp`; do not patch `port/generated/`, the
   external ReXGlue SDK, or clean game assets for this requirement.
-- Do keep `XamUserGetSigninInfo` synthetic record offset `+8` bit `0x2` set.
+- Do keep `XamUserGetSigninInfo` synthetic record offset `+8` bit `0x2` clear.
   Doritos reads that word separately from sign-in state `2` when starting a
-  game.
+  game and treats bit `0x2` as a guest-profile rejection condition.

@@ -1,6 +1,8 @@
 ﻿#include <filesystem>
 #include <memory>
 #include <sstream>
+#include <atomic>
+#include <thread>
 
 #include <rex/cvar.h>
 #include <rex/ui/windowed_app.h>
@@ -8,12 +10,16 @@
 #include "audio/backend.h"
 #include "config/port_config.h"
 #include "diagnostics/crash_dumps.h"
+#include "diagnostics/exception_trace.h"
+#include "diagnostics/guest_capture.h"
 #include "graphics/backend.h"
 #include "input/mapping.h"
 #include "logging/log.h"
 #include "net/network_mode.h"
 #include "platform/windows_platform.h"
+#include "runtime/course_load_guard.h"
 #include "runtime/runtime_plan.h"
+#include "runtime/xam_input_overrides.h"
 #include "runtime/xam_profile_overrides.h"
 #include "vfs/mount_table.h"
 
@@ -86,7 +92,9 @@ class DORITOSPortApp final : public rex::ReXApp {
     }
     InitializeScaffoldLogging(config_);
     doritos::diagnostics::InstallCrashDumpHandler("logs/runtime/dumps");
+    doritos::diagnostics::InstallFirstChanceExceptionTrace();
     LogScaffoldState(config_);
+    doritos::runtime::InstallXamInputOverrides();
     doritos::runtime::InstallXamProfileOverrides();
   }
 
@@ -97,14 +105,26 @@ class DORITOSPortApp final : public rex::ReXApp {
   void OnPostSetup() override {
     doritos::logging::Write(doritos::logging::Level::Info, "boot",
                            "ReXGlue runtime setup completed; launching guest module next");
+    doritos::diagnostics::StartGuestOutputCapture(runtime(), guest_capture_stop_,
+                                                 guest_capture_thread_);
+  }
+
+  void OnPreLaunchModule() override {
+    doritos::runtime::InstallCourseLoadGuard(runtime()->function_dispatcher());
   }
 
   void OnShutdown() override {
+    guest_capture_stop_.store(true);
+    if (guest_capture_thread_.joinable()) {
+      guest_capture_thread_.join();
+    }
     doritos::logging::Write(doritos::logging::Level::Info, "boot", "shutdown");
     doritos::logging::Shutdown();
   }
 
   doritos::config::PortConfig config_;
+  std::atomic_bool guest_capture_stop_{false};
+  std::thread guest_capture_thread_;
 };
 
 #else
@@ -127,6 +147,7 @@ class DORITOSPortApp final : public rex::ui::WindowedApp {
     }
     InitializeScaffoldLogging(config);
     doritos::diagnostics::InstallCrashDumpHandler("logs/runtime/dumps");
+    doritos::diagnostics::InstallFirstChanceExceptionTrace();
     LogScaffoldState(config);
     doritos::logging::Write(
         doritos::logging::Level::Warning, "rexglue",

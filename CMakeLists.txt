@@ -50,6 +50,7 @@ target_include_directories(DORITOS_platform PUBLIC src)
 add_library(DORITOS_runtime STATIC
     src/runtime/import_trap.cpp
     src/runtime/runtime_plan.cpp
+    src/runtime/xam_input_overrides.cpp
     src/runtime/xam_profile_overrides.cpp
 )
 target_include_directories(DORITOS_runtime PUBLIC src)
@@ -80,9 +81,11 @@ target_link_libraries(DORITOS_net PUBLIC DORITOS_logging)
 
 add_library(DORITOS_diagnostics STATIC
     src/diagnostics/crash_dumps.cpp
+    src/diagnostics/exception_trace.cpp
+    src/diagnostics/guest_capture.cpp
 )
 target_include_directories(DORITOS_diagnostics PUBLIC src)
-target_link_libraries(DORITOS_diagnostics PUBLIC DORITOS_logging)
+target_link_libraries(DORITOS_diagnostics PUBLIC DORITOS_logging rex::graphics rex::ui)
 if(WIN32)
     target_link_libraries(DORITOS_diagnostics PRIVATE Dbghelp)
 endif()
@@ -128,6 +131,9 @@ set(DORITOS_GENERATED_SOURCES_CMAKE
 
 if(EXISTS "${DORITOS_GENERATED_SOURCES_CMAKE}")
     include("${DORITOS_GENERATED_SOURCES_CMAKE}")
+    target_sources(DORITOS_runtime PRIVATE src/runtime/course_load_guard.cpp)
+    target_include_directories(DORITOS_runtime PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/port/generated")
     target_sources(doritos_port PRIVATE ${GENERATED_SOURCES})
     target_compile_definitions(doritos_port PRIVATE DORITOS_HAS_REXGLUE_GENERATED=1)
     set(DORITOS_GENERATED_COMPILE_OPTIONS)

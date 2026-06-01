@@ -1,14 +1,14 @@
 # Doritos Crash Course ReXGlue Bring-Up
 
-Private Windows recompilation bring-up for Doritos Crash Course using the Xbox 360 ReXGlue SDK.
+Public Windows recompilation bring-up for Doritos Crash Course using the Xbox 360 ReXGlue SDK.
 
 ## Current Status
 
 - ReXGlue codegen completes successfully against `default.xex_uncrypted.xex`.
 - Generated Debug build links as `build/bin/Debug/doritos_port.exe`.
-- Runtime reaches the title screen and advances to country/level selection.
-- Stable in-game state confirmed: country/level selection remains alive with D3D12 rendering and no failed draw diagnostics in the checked run.
-- Actual obstacle-course gameplay is not yet confirmed.
+- Runtime reaches the title screen, country/level selection, and obstacle-course gameplay.
+- Stable in-game state confirmed: scripted start reaches a live course scene with D3D12 rendering and no crash diagnostics in the checked run.
+- Xbox Live profile and guest-profile gates are bypassed project-locally with runtime shims; clean game files are not patched.
 
 ## Screenshots
 
@@ -17,6 +17,8 @@ Private Windows recompilation bring-up for Doritos Crash Course using the Xbox 3
 ![Country selection](docs/screenshots/02-country-select.png)
 
 ![Stable selection run](docs/screenshots/03-country-select-stability.png)
+
+![Obstacle course gameplay](docs/screenshots/04-obstacle-course-gameplay.png)
 
 ## Performance
 

@@ -42,8 +42,8 @@ Windows-runnable Doritos Crash Course build and reach a stable in-game state.
   files. Analysis found 26,255 ready functions and recompiled 26,010 functions.
   Runtime registered 26,500 recompiled functions.
 - Build succeeded for `build/bin/Debug/doritos_port.exe` with generated sources.
-- Stable runtime verification reached title, then country/level selection using
-  `--mnk_mode=true` and a held Space key for Xbox A.
+- Stable runtime verification reached title, country/level selection, and live
+  obstacle-course gameplay.
 - Xbox Live profile requirement patch verified by static check, Debug build,
   and focused runtime smoke. Log:
   `logs/runtime/runtime-profile-override-20260601-095743.log`; process stayed
@@ -57,11 +57,17 @@ Windows-runnable Doritos Crash Course build and reach a stable in-game state.
   `logs/runtime/runtime-heldinput-20260531-223653.log`; process stayed alive
   through capture and an extra 10 seconds, and the log had no fatal, exception,
   crash, unimplemented, assert, or failed draw diagnostics in the checked scan.
+- Best course gameplay proof log:
+  `logs/runtime/runtime-start-course-pendingguard-20260601-130158.log`;
+  process reached gameplay, captured a game-only framebuffer at
+  `logs/screenshots/doritos-start-course-pendingguard-20260601-130158.bmp`,
+  and remained alive until the 100 second harness timeout. Public screenshot:
+  `docs/screenshots/04-obstacle-course-gameplay.png`.
 
 ## Current Caveats
 
-- Confirmed stable state is the title and country/level selection flow, not a
-  loaded obstacle course run.
+- Confirmed stable state now includes a loaded obstacle course run. Full audio,
+  extended play, and all level flows are not yet signed off.
 - Quick keyboard taps may be missed; held input through MnK was needed for the
   title `Press A` prompt. Default MnK mapping: Space = A, Escape = Start.
 - Audio was verified with the NOP backend for stability; full audio has not
@@ -114,5 +120,20 @@ binaries/assets.
 - [x] Collect the latest runtime log/dump evidence and stack context.
 - [x] Trace generated start-game sign-in info call sites.
 - [x] Add a regression check for the synthetic sign-in info flags word.
-- [x] Patch the synthetic profile record to report the Live-capable info bit.
+- [x] Patch the synthetic profile record to keep the guest-profile bit clear.
 - [x] Rebuild/run the narrowest useful verification and record durable results.
+- [x] Instrument profile/content/save imports and identify the post-sign-in
+      "Saving..." crash path.
+- [x] Patch the stale async worker path in guest function `0x824E9940` so a
+      stack-local course-load object whose service was already destroyed does
+      not call its finish callback or dereference `this+4`.
+
+## Start Course Verification Harness
+
+Goal: prove the start-game path without relying on foreground desktop input,
+which Windows blocked with `0x80070005`.
+
+- [x] Add a gated scripted input shim for verification-only course start runs.
+- [x] Run the scripted path into course loading/gameplay and inspect logs/dumps.
+- [x] Capture a game-only screenshot when the run reaches a later stable state.
+- [x] Record durable verification results and caveats.

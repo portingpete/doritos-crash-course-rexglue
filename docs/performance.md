@@ -12,7 +12,8 @@ Date: 2026-06-01
 - Audio backend: NOP
 - Networking: disabled
 - Window: 1280x720
-- Input: MnK bridge enabled; held Space maps to Xbox A
+- Input: MnK bridge enabled; scripted course-start verification uses the
+  project-local XAM input shim
 
 ## Codegen and Build
 
@@ -33,13 +34,33 @@ Measurements below are from runtime logs. Draw dispatch count is not FPS; it is 
 | Longer stability probe | `logs/runtime/runtime-gameplay-20260531-223932.log` | 143.397s | Country/level selection remained live | 874,176 | 0 |
 | Title prompt probe | `logs/runtime/runtime-input-20260531-223134.log` | 53.510s | Title prompt with live rendering | 286,240 | 0 |
 
+## Course Gameplay Verification
+
+The latest start-course verification used D3D12 rendering, NOP audio, disabled
+networking, a 1280x720 window, and the scripted input shim. The process reached
+live obstacle-course gameplay, produced a game-only framebuffer capture at
+`logs/screenshots/doritos-start-course-pendingguard-20260601-130158.bmp`, and
+was still alive after the 100 second harness timeout. The harness then stopped
+the process intentionally.
+
+- Public screenshot:
+  `docs/screenshots/04-obstacle-course-gameplay.png`
+- Runtime log:
+  `logs/runtime/runtime-start-course-pendingguard-20260601-130158.log`
+- Observable game timer at capture: `00:28.626`
+- Crash diagnostics: no first-chance exception, unhandled exception, fatal,
+  assert, unimplemented, crash, or failed draw lines were found in the checked
+  log scan after the guard fired.
+- FPS telemetry: not emitted by this verification run.
+
 ## Confirmed Stable State
 
-The current confirmed stable in-game state is the title screen advancing into country/level selection. The process stayed alive through capture and additional runtime, and checked diagnostics did not show fatal errors, exceptions, unimplemented calls, assertions, crashes, or failed draw dispatches.
+The current confirmed stable in-game state is obstacle-course gameplay. The
+process stayed alive through capture and additional runtime, and checked
+diagnostics did not show fatal errors, exceptions, unimplemented calls,
+assertions, crashes, or failed draw dispatches.
 
 ## Caveats
 
-- Actual obstacle-course gameplay has not yet been separately confirmed.
 - Full audio has not been signed off; stable verification used the NOP audio backend.
 - Held keyboard input was needed for reliable Xbox A activation. Quick taps can be missed by the current MnK bridge.
-

@@ -70,20 +70,35 @@
   `sub_823E8448` and host wrapper `rex::system::XThread::Execute`. Matching
   log `logs/runtime/runtime-20260601-101910.log` shows
   `XamUserGetSigninInfo` then `XamShowSigninUI` before the crash.
-- 2026-06-01: Inferred root cause for start-game crash: Doritos generated
+- 2026-06-01: Corrected start-game profile flag finding. Doritos generated
   start-game code reads `XamUserGetSigninInfo` output word at offset `+8` and
-  tests bit `0x2`; the synthetic profile record had sign-in state `2` at
-  offset `+12` but left offset `+8` zero, sending the title down the sign-in UI
-  path. Fix writes `kSyntheticSigninInfoFlags = 0x00000002u` to offset `+8` in
-  `src/runtime/xam_profile_overrides.cpp`, and
-  `tools/verify_profile_override.ps1` now checks the flag.
-- 2026-06-01: Verification after the start-game crash patch:
-  `tools/verify_profile_override.ps1` failed before the runtime change and
-  passed after it; `cmake --build build\win-amd64 --config Debug` rebuilt
-  `build/bin/Debug/doritos_port.exe` successfully, SHA-256
-  `6E7D46674212D99D76ABB72F3093CF5C59DA6CFA537204376F1A9D7EBD198890`.
-  Smoke log `logs/runtime/runtime-start-crash-fix-smoke-20260601-103444.log`
-  stayed alive for 15 seconds at startup with no error/fatal/assert/
-  unimplemented/crash draw diagnostics. Full start-game interaction is not
-  locally confirmed because Windows blocked foreground input automation with
-  `0x80070005`.
+  rejects bit `0x2` as a guest-profile condition. A user screenshot confirmed
+  `0x2` shows "Guest gamer profiles are not supported". The project shim now
+  writes `kSyntheticSigninInfoFlags = 0x00000001u` to offset `+8`, keeping the
+  guest bit clear while preserving a Live-enabled synthetic profile marker.
+- 2026-06-01: With sign-in info flags `0x1`, scripted start no longer shows the
+  guest-profile dialog. Game-only capture
+  `logs/screenshots/doritos-start-course-debug-20260601-115219.bmp` shows the
+  "Saving..." overlay before the process crashes. Latest dump reports
+  `0xC0000005` reading guest address `0x20`, rethrown through
+  `rex::ppc::detail::seh_rethrow`; mapped generated frames include
+  `sub_822AD9C8+0x520` and `sub_823E8448+0xffb`.
+- 2026-06-01: Start-course crash root cause refined. LLDB showed the
+  course-load object is stack-local in `sub_8233F360` (`r1+96`). The destructor
+  path `sub_824D5258 -> sub_824D2888 -> sub_824E14C0` clears the object's
+  service pointer at `this+4`; a later XThread worker then entered
+  `sub_824E9940`/`sub_824EA8F8` with that pointer already null. A previous
+  guard that called the `sub_824E9940` finish callback and returned `4`
+  advanced into a second null dereference in `sub_824EA8F8`.
+- 2026-06-01: Working course-load guard: for guest function `0x824E9940`, if
+  `this+4` is null, log the stale worker once and return `0` without calling
+  the finish callback. Non-null calls still pass through the original generated
+  function.
+- 2026-06-01: Scripted start-course verification with the stale-worker guard
+  passed the narrow stability gate. The run used D3D12, NOP audio, disabled
+  networking, `--mnk_mode=true`, and `--doritos_scripted_input=start_course`;
+  it reached live obstacle-course gameplay, captured a game-only framebuffer at
+  `logs/screenshots/doritos-start-course-pendingguard-20260601-130158.bmp`,
+  and remained alive until the 100 second harness timeout. Public docs PNG:
+  `docs/screenshots/04-obstacle-course-gameplay.png`; runtime log:
+  `logs/runtime/runtime-start-course-pendingguard-20260601-130158.log`.
