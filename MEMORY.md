@@ -41,3 +41,7 @@
   no fatal, exception, crash, unimplemented, assert, or failed draw diagnostics.
 - 2026-06-01: Caveat: actual obstacle-course gameplay is not yet confirmed.
   Quick key taps can be missed; held input is the known-good verification path.
+- 2026-06-01: Added easy launcher: root `Launch Doritos Crash Course.bat`
+  calls `tools/launch.ps1`. It verifies `assets/game/`, builds Debug when
+  needed, then runs the port visibly with D3D12, NOP audio, disabled
+  networking, MnK enabled, and a 1280x720 window.

@@ -54,6 +54,10 @@
   Space = Xbox A, Escape = Start.
 - Do treat quick key taps as unreliable; held Space through the window message
   path was the confirmed way to pass the title prompt.
+- Do use `Launch Doritos Crash Course.bat` for double-click local bring-up. It
+  delegates to `tools/launch.ps1`, validates `assets/game/`, builds Debug if
+  needed, and launches with D3D12, NOP audio, disabled networking, MnK, and a
+  1280x720 window.
 - Do not claim a fully playable course yet. Confirmed stable state is title and
   country/level selection, not a loaded obstacle course run.
 - Do not edit the clean `game/` files in place.

@@ -49,3 +49,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\run.ps1 -Config Debu
 
 For keyboard verification, hold Space for Xbox A. Quick taps can be missed by the current MnK bridge.
 
+## Easy Launcher
+
+On Windows, double-click `Launch Doritos Crash Course.bat` from the repo root.
+
+The launcher checks `assets/game/`, builds Debug if needed, and starts the port with the current stable defaults: D3D12 graphics, NOP audio, disabled networking, keyboard-to-controller input, and a 1280x720 window.
+
+For a fresh public clone, add your local game files first and run `tools\codegen.ps1` before using the launcher. If `build/bin/Debug/doritos_port.exe` is missing, the launcher can build it only after `port/generated/sources.cmake` exists.
