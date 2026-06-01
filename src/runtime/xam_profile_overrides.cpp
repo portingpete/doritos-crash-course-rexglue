@@ -17,6 +17,7 @@
 namespace {
 
 constexpr uint32_t kLiveSigninState = 2;
+constexpr uint32_t kSyntheticSigninInfoFlags = 0x00000002u;
 constexpr uint64_t kSyntheticXuid = 0xB13EBABEBABEBABEull;
 constexpr uint32_t kXErrorSuccess = 0x00000000u;
 constexpr uint32_t kXErrorNoSuchUser = 0x00000525u;
@@ -33,6 +34,7 @@ void WriteSyntheticSigninInfo(uint8_t* base, uint32_t info_ptr) {
   auto* info = PPC_RAW_ADDR(info_ptr);
   std::memset(info, 0, 40);
   PPC_STORE_U64(info_ptr, kSyntheticXuid);
+  PPC_STORE_U32(info_ptr + 8, kSyntheticSigninInfoFlags);
   PPC_STORE_U32(info_ptr + 12, kLiveSigninState);
 
   auto* name = reinterpret_cast<char*>(PPC_RAW_ADDR(info_ptr + 24));

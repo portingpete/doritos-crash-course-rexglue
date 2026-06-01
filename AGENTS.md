@@ -57,6 +57,18 @@
   (`2`), fill a synthetic `User` sign-in record, allow privilege checks, and
   suppress the sign-in modal. Verification log:
   `logs/runtime/runtime-profile-override-20260601-095743.log`.
+- Confirmed: user crash dump `logs/runtime/dumps/doritos-port-crash.dmp`
+  from `2026-06-01 10:19:49` rethrows a guest PPC access violation through
+  `rex::ppc::detail::seh_rethrow`, with generated frames in
+  `sub_823E8448` and host wrapper `rex::system::XThread::Execute`; the
+  matching runtime log shows `XamUserGetSigninInfo` followed by
+  `XamShowSigninUI` before the crash.
+- Confirmed: generated start-game profile call sites load
+  `XamUserGetSigninInfo` output offset `+8` and test bit `0x2` before taking
+  the Live-capable path. The Doritos shim now writes
+  `kSyntheticSigninInfoFlags = 0x00000002u` at offset `+8` in
+  `src/runtime/xam_profile_overrides.cpp`; `tools/verify_profile_override.ps1`
+  checks this regression case.
 
 ## Repo-Specific Do/Do-Not
 
@@ -77,3 +89,6 @@
   `src/runtime/xam_profile_import_redirect.h` and
   `src/runtime/xam_profile_overrides.cpp`; do not patch `port/generated/`, the
   external ReXGlue SDK, or clean game assets for this requirement.
+- Do keep `XamUserGetSigninInfo` synthetic record offset `+8` bit `0x2` set.
+  Doritos reads that word separately from sign-in state `2` when starting a
+  game.

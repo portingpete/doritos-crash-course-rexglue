@@ -104,3 +104,15 @@ Goal: remove the title's Xbox Live profile gate without editing `game/`,
   test to confirm the title uses the synthetic Live profile path without a
   sign-in block.
 - [x] Record durable findings in `AGENTS.md` and `MEMORY.md`.
+
+## Start Game Crash Patch
+
+Goal: fix the crash reported when starting a game after removing the Xbox Live
+profile gate, while keeping the change project-local and preserving clean
+binaries/assets.
+
+- [x] Collect the latest runtime log/dump evidence and stack context.
+- [x] Trace generated start-game sign-in info call sites.
+- [x] Add a regression check for the synthetic sign-in info flags word.
+- [x] Patch the synthetic profile record to report the Live-capable info bit.
+- [x] Rebuild/run the narrowest useful verification and record durable results.

@@ -63,3 +63,27 @@
   fatal/assert/import/draw diagnostics. Computer Use window capture was blocked
   by Windows with `0x80070005`, so this profile smoke is log/process confirmed
   rather than screenshot confirmed.
+- 2026-06-01: Start-game crash investigation used user dump
+  `logs/runtime/dumps/doritos-port-crash.dmp` timestamped
+  `2026-06-01 10:19:49`. Confirmed exception path rethrows guest PPC access
+  violation through `rex::ppc::detail::seh_rethrow`, with generated frames in
+  `sub_823E8448` and host wrapper `rex::system::XThread::Execute`. Matching
+  log `logs/runtime/runtime-20260601-101910.log` shows
+  `XamUserGetSigninInfo` then `XamShowSigninUI` before the crash.
+- 2026-06-01: Inferred root cause for start-game crash: Doritos generated
+  start-game code reads `XamUserGetSigninInfo` output word at offset `+8` and
+  tests bit `0x2`; the synthetic profile record had sign-in state `2` at
+  offset `+12` but left offset `+8` zero, sending the title down the sign-in UI
+  path. Fix writes `kSyntheticSigninInfoFlags = 0x00000002u` to offset `+8` in
+  `src/runtime/xam_profile_overrides.cpp`, and
+  `tools/verify_profile_override.ps1` now checks the flag.
+- 2026-06-01: Verification after the start-game crash patch:
+  `tools/verify_profile_override.ps1` failed before the runtime change and
+  passed after it; `cmake --build build\win-amd64 --config Debug` rebuilt
+  `build/bin/Debug/doritos_port.exe` successfully, SHA-256
+  `6E7D46674212D99D76ABB72F3093CF5C59DA6CFA537204376F1A9D7EBD198890`.
+  Smoke log `logs/runtime/runtime-start-crash-fix-smoke-20260601-103444.log`
+  stayed alive for 15 seconds at startup with no error/fatal/assert/
+  unimplemented/crash draw diagnostics. Full start-game interaction is not
+  locally confirmed because Windows blocked foreground input automation with
+  `0x80070005`.
