@@ -1,0 +1,15 @@
+﻿# Doritos Crash Course - local ReXGlue codegen config
+# This format is confirmed from RexGlueCurrent/resources/templates/init/config_toml.inja
+# and RexGlueCurrent/src/codegen/config.cpp.
+
+project_name = "doritos_port"
+file_path = "../../assets/game/default.xex_uncrypted.xex"
+out_directory_path = "../generated"
+generate_exception_handlers = true
+
+[analysis]
+max_jump_extension = 65536
+data_region_threshold = 16
+large_function_threshold = 1048576
+
+

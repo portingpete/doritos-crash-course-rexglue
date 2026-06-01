@@ -1,0 +1,32 @@
+# Original game package and copied runtime assets.
+game/
+assets/game/
+*.xex
+*.xexp
+*.pak
+
+# Local build and runtime output.
+build/
+out/
+user/
+logs/
+
+# Generated recompilation output; regenerate locally from a legally sourced XEX.
+port/generated/
+
+# External SDK checkout/reference tree.
+Rex64GlueCurrent/
+
+# Local/editor noise.
+.vs/
+.vscode/
+*.user
+*.suo
+*.tmp
+*.dll
+*.lib
+*.pdb
+*.obj
+*.dmp
+Thumbs.db
+Desktop.ini

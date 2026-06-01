@@ -1,0 +1,25 @@
+﻿# Doritos Crash Course Windows port runtime config.
+
+game_root = "assets\\game"
+executable_path = "default.xex_uncrypted.xex"
+title_update_path = ""
+
+log_level = "info"
+graphics_backend = "d3d12"
+audio_backend = "sdl"
+input_backend = "xinput"
+networking_mode = "disabled"
+
+window_width = 1280
+window_height = 720
+fullscreen = false
+
+break_on_unimplemented_import = true
+trace_imports = true
+trace_file_io = true
+trace_memory = false
+trace_graphics = true
+trace_audio = true
+trace_network = true
+
+
